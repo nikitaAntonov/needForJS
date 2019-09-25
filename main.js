@@ -1,17 +1,42 @@
 const score = document.querySelector('.score'),
     start = document.querySelector('.start'),
     gameArea = document.querySelector('.gameArea'),
+    areaCont = document.querySelector('.areaCont'),
     car = document.createElement('div'),
     fire = document.querySelector('.fire'),
     smoke = document.querySelector('.smoke'),
-    sound = document.createElement('embed');
+    sound = document.createElement('embed'),
+    easy = document.querySelector('.easy'),
+    medium = document.querySelector('.medium'),
+    hard = document.querySelector('.hard'),
+    music = document.querySelector('.music');
 
 car.classList.add('car');
-sound.classList.add('sound');
 
+easy.addEventListener('click', function() {
+    setting.speed = 3;
+    setting.traffic = 3;
+});
+medium.addEventListener('click', function() {
+    setting.speed = 3;
+    setting.traffic = 2;
+});
+hard.addEventListener('click', function() {
+    setting.speed = 5;
+    setting.traffic = 2;
+});
+
+music.addEventListener('click', startMusic);
 start.addEventListener('click', startGame);
 document.addEventListener('keydown', startRun);
 document.addEventListener('keyup', stopRun);
+
+function startMusic() {
+    sound.classList.toggle('sound');
+    sound.setAttribute('type', 'audio/mp3');
+    sound.setAttribute('src', './sound.mp3');
+    gameArea.appendChild(sound);
+}
 
 const keys = {
     ArrowUp: false,
@@ -27,9 +52,10 @@ const keys = {
 const setting = {
     start: false,
     score: 0,
-    speed: 3,
-    traffic: 3
+    speed: 5,
+    traffic: 2
 };
+let arr = [];
 
 function getQuantityElements(heightElement) {
     return gameArea.offsetHeight / heightElement + 1;
@@ -37,6 +63,7 @@ function getQuantityElements(heightElement) {
 
 function startGame() {
     start.classList.add('hide');
+    gameArea.innerHTML = '';
 
     for (let i = 0; i < getQuantityElements(100); i++) {
         const line = document.createElement('div');
@@ -57,21 +84,25 @@ function startGame() {
         enemy.style.background = `url(./img/enemy${enemyImg}.png) center / contain no-repeat`;
         gameArea.appendChild(enemy);
     }
-
+    setting.score = 0;
     setting.start = true;
     gameArea.appendChild(car);
-    sound.setAttribute('type', 'audio/mp3');
-    sound.setAttribute('src', './sound.mp3');
-    gameArea.appendChild(sound);
+    car.style.left = gameArea.offsetWidth / 2 - car.offsetWidth / 2;
+    car.style.top = 'auto';
+    car.style.bottom = '10px';
+
     car.appendChild(fire);
     car.appendChild(smoke);
     setting.x = car.offsetLeft;
     setting.y = car.offsetTop;
+
     requestAnimationFrame(playGame);
 }
 
 function playGame() {
     if (setting.start) {
+        setting.score += setting.speed;
+        score.innerHTML = 'SCORE<br>' + setting.score;
         moveRoad();
         moveEnemy();
         if ((keys.ArrowLeft || keys.a) && setting.x > 0) {
@@ -95,6 +126,16 @@ function playGame() {
         car.style.top = setting.y + 'px';
 
         requestAnimationFrame(playGame);
+    } else {
+        localStorage.setItem('score', `${setting.score}`);
+        arr.push(localStorage.getItem('score'));
+        arr = [...new Set(arr)];
+        minScore = Math.min(...arr);
+        maxScore = Math.max(...arr);
+
+        if (localStorage.getItem('score') >= maxScore) {
+            score.innerHTML = `New record! ${maxScore}`;
+        }
     }
 }
 
@@ -129,7 +170,21 @@ function moveRoad() {
 
 function moveEnemy() {
     let enemy = document.querySelectorAll('.enemy');
+
     enemy.forEach(function(item) {
+        let carRect = car.getBoundingClientRect();
+        let enemyRect = item.getBoundingClientRect();
+
+        if (
+            carRect.top <= enemyRect.bottom &&
+            carRect.right >= enemyRect.left &&
+            carRect.left <= enemyRect.right &&
+            carRect.bottom >= enemyRect.top
+        ) {
+            setting.start = false;
+            start.classList.remove('hide');
+            score.style.top = start.offsetHeight + 'px';
+        }
         item.y += setting.speed / 2;
         item.style.top = item.y + 'px';
 
