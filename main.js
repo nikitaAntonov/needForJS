@@ -13,7 +13,11 @@ const keys = {
     ArrowUp: false,
     ArrowDown: false,
     ArrowRight: false,
-    ArrowLeft: false
+    ArrowLeft: false,
+    w: false,
+    s: false,
+    d: false,
+    a: false
 };
 
 const setting = {
@@ -59,16 +63,16 @@ function playGame() {
     if (setting.start) {
         moveRoad();
         moveEnemy();
-        if (keys.ArrowLeft && setting.x > 0) {
+        if ((keys.ArrowLeft || keys.a) && setting.x > 0) {
             setting.x -= setting.speed;
         }
-        if (keys.ArrowRight && setting.x < gameArea.offsetWidth - car.offsetWidth) {
+        if ((keys.ArrowRight || keys.d) && setting.x < gameArea.offsetWidth - car.offsetWidth) {
             setting.x += setting.speed;
         }
-        if (keys.ArrowUp && setting.y > 0) {
+        if ((keys.ArrowUp || keys.w) && setting.y > 0) {
             setting.y -= setting.speed;
         }
-        if (keys.ArrowDown && setting.y < gameArea.offsetHeight - car.offsetHeight) {
+        if ((keys.ArrowDown || keys.s) && setting.y < gameArea.offsetHeight - car.offsetHeight) {
             setting.y += setting.speed;
         }
 
@@ -82,6 +86,7 @@ function playGame() {
 function startRun(event) {
     event.preventDefault(); // отменяем скроллинг страницы стрелочками
     keys[event.key] = true; // event - показывает какое событие произошло со всем описанием события. event.key - показыват только нажатую кнопку.
+    console.log(event);
 }
 
 function stopRun(event) {
